@@ -20,11 +20,33 @@ app.use(
 // Database connection
 const db = new sqlite3.Database('./db/database.db');
 
-// LocalHost right now
+// GET ROUTES
+
+// Default to login
 app.get('/', (req, res) => {
   // Render login page
   res.sendFile(__dirname + '/views/login.html');
 });
+
+// Register Route
+app.get('/register', (req, res) => {
+  res.send(`
+    <h1>Registration</h1>
+    <form action="/register" method="POST">
+      <input type="text" name="username" placeholder="Username" required><br>
+      <input type="password" name="password" placeholder="Password" required><br>
+      <button type="submit">Register</button>
+    </form>
+  `);
+});
+
+// Route to the Landing Page when logged in.
+app.get('/landingPage', (req, res) => {
+  res.sendFile(path.join(__dirname+'/views/landingPage.html'));
+});
+
+
+// POST ROUTES
 
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
@@ -50,9 +72,19 @@ app.post('/login', (req, res) => {
   });
 });
 
-// Route to the Landing Page when logged in.
-app.get('/landingPage', (req, res) => {
-  res.sendFile(path.join(__dirname+'/views/landingPage.html'));
+// Register user route
+app.post('/register', (req, res) => {
+  const { username, password } = req.body;
+
+  // Insert the user record into the database
+  db.run(`INSERT INTO users (username, password, type) VALUES (?, ?, 'user')`, [username, password], function (err) {
+    if (err) {
+      console.error(err);
+      res.send('Error - cannot register user.');
+    } else {
+      res.send('User registered!');
+    }
+  });
 });
 
 // Start the server
